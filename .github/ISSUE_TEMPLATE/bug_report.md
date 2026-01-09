@@ -15,19 +15,28 @@ assignees: ''
 - [ ] I've confirmed that I am using the latest version of Reviewer-Intense.
 
 ### Platform
+> 请填写操作系统/平台信息（如：Windows 11, macOS 14.0, Ubuntu 22.04, iOS 17, Android 14 等）。
 
 ### Version
+> 请填写当前使用的软件版本号。
 
 ### Bug Description
-
+> 请清晰、详细地描述遇到的问题。
 
 ### Steps To Reproduce
+1.  ...
+2.  ...
+3.  ...
 
+> 请按顺序列出可重现此问题的详细步骤。
 
 ### Expected Behavior
-
+> 请描述你期望的正常行为。
 
 ### Relevant Log Output
-
+```
+请在此处粘贴相关的日志、控制台输出或错误信息。如果信息量很大，请使用附件的功能上传日志文件。
+```
 
 ### Additional Context
+> 在此添加任何可能对定位问题有帮助的其他信息或截图链接。
