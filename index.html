@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>Reviewer Intense</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <div class="select-wrapper">
+                <select id="file-selector"></select>
+            </div>
+            <span id="progress-tag">0/0</span>
+        </div>
+
+        <div class="card-container">
+            <div id="card" class="card">
+                <div id="content-q" class="text-display">Please select a knowledge base to start</div>
+                <div id="content-a" class="text-display secondary" style="display:none"></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div id="pre-answer-btns" style="display:none;">
+                <button onclick="showAnswer()" class="btn-main">Show Answer (Space)</button>
+            </div>
+            <div id="post-answer-btns" style="display:none;">
+                <div class="btn-row">
+                    <button onclick="handleAction('forgotten')" class="btn-forgot">Forgot (F)</button>
+                    <button onclick="handleAction('recognized')" class="btn-remember">Remembered (J)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
