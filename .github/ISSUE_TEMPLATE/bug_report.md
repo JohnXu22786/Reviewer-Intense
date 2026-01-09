@@ -1,38 +1,25 @@
----
-name: Bug report
-about: Create a report to help us improve
-title: ''
-labels: ''
-assignees: ''
+### Issue Checklist
 
----
+- [x] I understand that issues are for feedback and problem solving, not for complaining in the comment section, and will provide as much information as possible to help solve the problem.
+- [x] I've looked at **pinned issues** and searched for existing [Open Issues](https://github.com/JohnXu22786/Reviewer-Intense/issues), [Closed Issues](https://github.com/JohnXu22786/Reviewer-Intense/issues?q=is%3Aissue%20state%3Aclosed), and [Discussions](https://github.com/JohnXu22786/Reviewer-Intense/discussions), no similar issue or discussion was found.
+- [x] I've filled in short, clear headings so that developers can quickly identify a rough idea of what to expect when flipping through the list of issues. And not "a suggestion", "stuck", etc.
+- [x] I've confirmed that I am using the latest version of Reviewer-Intense.
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+### Platform
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+### Version
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+### Bug Description
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+### Steps To Reproduce
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
 
-**Additional context**
-Add any other context about the problem here.
+### Expected Behavior
+
+
+### Relevant Log Output
+
+
+### Additional Context
+
