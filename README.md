@@ -1,75 +1,109 @@
-# Knowledge Point Mastery Reviewer
+# Reviewer Intense 🧠⚡
 
-## Overview
+**A minimal, self-hosted, spaced-repetition flashcard reviewer for intense memory training.**
 
-This Python script, `knowledge_reviewerv1.py`, is a console-based tool designed for efficient, randomized review of knowledge points sourced from local plain text files. It implements an adaptive mastery tracking system (similar to spaced repetition concepts) that determines mastery based on consecutive correct answers, adjusting the requirement if the user has previously struggled with the topic.
+Reviewer Intense is a lightweight web application designed to help you memorize anything using a dynamic, algorithm-driven review schedule. It's built for simplicity, speed, and effectiveness, running entirely on your local machine.
 
-## Features
+---
 
-*   **Dynamic Knowledge Base Loading:** Automatically scans and loads `.txt` files from a designated directory (`E:\knowledge_bases`), allowing the user to select the knowledge set for review.
-*   **Adaptive Mastery System:** Utilizes a precise mechanism to determine when a topic is truly mastered, distinguishing between initial success and recovery after mistakes (see Mastery Logic below).
-*   **Randomized Review Rounds:** Questions are drawn randomly without repetition within each review round (which encompasses all unmastered topics).
-*   **Multi-line Answer Support:** The input format allows for detailed, multi-line answers to complex topics.
-*   **Real-Time Progress Tracking:** After each response, the script displays the current mastery status and required steps for achieving full mastery.
-*   **Mid-Session Exit:** Supports graceful exit, saving the partial progress to a summary report.
-*   **Detailed Reporting:** Upon completion or exit, a comprehensive report is generated and saved to the user's desktop, detailing mastered and unmastered topics.
+## ✨ Core Features
 
-## Mastery Logic
+*   **🔁 Dynamic Spaced Repetition**: Employs a smart scheduling algorithm. Items you **forget** are rescheduled at a random interval (8-12 positions later) for more frequent review, while items you **remember** are progressively mastered.
+*   **🎯 Mastery-Based Tracking**: Tracks your progress clearly (`Mastered/Total`). An item is considered "mastered" after its first review or after two consecutive correct recalls.
+*   **⌨️ Keyboard-First Design**: Navigate entirely with your keyboard for a fluid, uninterrupted review flow.
+    *   `Space` = Show Answer
+    *   `F` = Forgot
+    *   `J` = Remembered
+*   **🎨 Clean & Adaptive UI**: Features a clean, modern interface with automatic light/dark mode support based on your system preferences.
+*   **📁 Simple File-Based Knowledge Bases**: Your flashcards are stored in straightforward `.json` files. Easy to create, edit, and manage.
+*   **🚀 Self-Contained & Local**: Your data never leaves your machine. The backend server runs locally, ensuring privacy and eliminating latency.
 
-The script uses a specialized counter system (`correct_count` and `incorrect_count`) to track proficiency:
+---
 
-1.  **Initial Mastery (Zero Mistakes):** If the knowledge point has **never** been answered incorrectly (`incorrect_count = 0`), it is considered mastered after **2 consecutive correct answers**.
+## 🏗️ Architecture
 
-    $$
-    Mastered \iff (IncorrectCount = 0) \land (CorrectCount \ge 2)
-    $$
+This is a full-stack application with a clear separation between the frontend and backend.
 
-2.  **Recovery Mastery (After Mistakes):** If the knowledge point has been answered incorrectly at least once (`incorrect_count > 0`), the requirement increases. Mastery is achieved only after **3 consecutive correct answers**. An incorrect response resets the `correct_count` to zero.
+*   **Frontend (`index.html`, `style.css`, `script.js`)**: A static, responsive web interface that handles user interaction, review logic, and communicates with the backend API.
+*   **Backend (`backend.py`)**: A lightweight Flask server that:
+    *   Serves the frontend static files.
+    *   Provides an API to list and load knowledge base (`.json`) files from a configured directory.
+    *   Generates stable IDs for flashcards based on their content.
+*   **Configuration (`config.json`)**: A simple file to set the path to your knowledge base directory.
 
-    $$
-    Mastered \iff (IncorrectCount > 0) \land (CorrectCount \ge 3)
-    $$
+---
 
-## Setup and Installation
+## 🚀 Quick Start
 
-1.  **Download:** Save the provided Python script (`knowledge_reviewerv1.py`) to your local machine.
-2.  **Knowledge Base Directory:** The script hardcodes the knowledge base path to: `E:\knowledge_bases`.
-    *   **Option A (Recommended):** Create this exact directory path on your system.
-    *   **Option B:** Modify the `knowledge_dir` variable inside the `main()` function in the Python script to point to your desired path.
-3.  **Create Knowledge Files:** Place your knowledge point files (in the required format, see below) into the `E:\knowledge_bases` directory.
-4.  **Run:** Execute the script from your terminal:
+### Prerequisites
+*   Python 3.7+
+*   Flask (`pip install flask flask-cors`)
 
-```bash
-python knowledge_reviewerv1.py
+### Steps
+1.  **Clone or download** the project files.
+2.  **Configure** the `config.json` file to point to your desired knowledge base directory (e.g., `"D:\\knowledge_bases"`).
+3.  **Create a knowledge base**: Place a `.json` file in your configured directory. The file should contain a list of objects with `"question"` and `"answer"` fields. An `"id"` field is optional and will be auto-generated.
+    ```json
+    [
+      { "question": "What is the capital of France?", "answer": "Paris" },
+      { "question": "Explain Newton's First Law.", "answer": "An object at rest stays at rest..." }
+    ]
+    ```
+4.  **Start the backend server**:
+    ```bash
+    python backend.py
+    ```
+5.  **Open your browser** and navigate to `http://localhost:1200`.
+
+---
+
+## 📖 How to Use
+
+### Before using
+
+1. Download Reviewer-Intense-v1.0.0.zip, extract it.
+2. Run backend.py with pythonw.exe.
+    > Tip: You can configure it to run automatically at startup using the Task Scheduler.  
+<img width="882" height="480" alt="image" src="https://github.com/user-attachments/assets/c2736790-bb39-43ea-9275-c61d1aa0fe65" />
+3. Edit `config.json` to customize:
+*   `KNOWLEDGE_DIR`: The absolute path to the folder where your `.json` knowledge base files are stored.
+4. Run index.html.
+    > Tip: You can use Edge app mode for better experience.
+
+### After the app start
+
+1.  **Select a Knowledge Base**: Use the dropdown in the header to choose a `.json` file to review.
+2.  **Review**:
+    *   The **question** is displayed.
+    *   Press `Space` to reveal the **answer**.
+3.  **Self-Assess**:
+    *   Press `F` if you **forgot** the answer. The item will be rescheduled soon.
+    *   Press `J` if you **remembered** the answer. The item moves closer to mastery.
+4.  **Track Progress**: Watch the `Mastered/Total` counter in the header grow as you learn.
+
+The application will automatically sequence the cards based on your performance, focusing your time on the items that need the most attention.
+
+---
+
+## 📂 Project Structure
+```
+reviewer-intense/
+├── index.html          # Main application page
+├── style.css           # Application styles (light/dark theme)
+├── script.js           # Frontend logic & review algorithm
+├── backend.py          # Flask server & API
+├── config.json         # Configuration (knowledge base path)
+└── (knowledge_bases/)  # Your .json flashcard files (location configurable)
 ```
 
-## Knowledge Base File Format
+---
 
-The script requires knowledge files to be simple `.txt` files, using specific Chinese markers for the question and answer sections.
+## 🛠️ Development
 
-*   Each question must start with `题目：` (Question:).
-*   The answer must start with `答案：` (Answer:).
-*   Answers can span multiple subsequent lines until the next `题目：` marker is encountered.
+This is a long-term project focused on core review functionality. The code is structured for clarity:
+*   The review scheduler logic is in `script.js` (`handleAction` function).
+*   The backend API in `backend.py` is minimal and focused on file operations.
+*   Styling in `style.css` uses CSS custom properties for easy theming.
 
-**Example Format:**
+Feedback and contributions focused on improving the review algorithm, UX, or code structure are welcome.
 
-```txt
-题目：What is the capital of France?
-答案：Paris is the capital.
-It is located on the Seine River.
-
-题目：Which protocol is used for secure web browsing?
-答案：HTTPS
-This uses SSL/TLS encryption.
-```
-
-## Usage
-
-1.  **Selection:** Upon running, the script lists all available `.txt` files. Enter the corresponding number to select a topic.
-2.  **Review Loop:** The script presents one question at a time.
-3.  **Show Answer:** Press **Enter** to reveal the answer after you have attempted to recall it.
-4.  **Feedback:** After viewing the answer, provide feedback on your performance:
-    *   **A:** Mastered/Correct (Increase correct count).
-    *   **B:** Not Mastered/Incorrect (Reset correct count, increase incorrect count).
-    *   **X:** Exit the review session.
-5.  **Reporting:** When you exit or master all points, a report summarizing your progress and showing the mastery method (2x or 3x consecutive correct) is saved to your desktop (e.g., `C:\Users\User\Desktop\复习报告_file_name_timestamp.txt`).
