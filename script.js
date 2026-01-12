@@ -110,7 +110,7 @@ function showQuestion() {
     document.getElementById('progress-tag').innerText = `${masteredItems}/${totalItems}`;
 
     if (dynamicSequence.length === 0) {
-        document.getElementById('content-q').innerText = "🎉 所有题目已掌握！";
+        document.getElementById('content-q').innerText = "🎉 All questions have been mastered!";
         document.getElementById('content-a').style.display = 'none';
         document.getElementById('pre-answer-btns').style.display = 'none';
         document.getElementById('post-answer-btns').style.display = 'none';
