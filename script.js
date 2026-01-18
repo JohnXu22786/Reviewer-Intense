@@ -13,6 +13,11 @@ function getRandomInterval() {
     return Math.floor(Math.random() * 5) + 8; // 8到12之间的随机数
 }
 
+// 生成较长的随机间隔（15-20之间）
+function getLongRandomInterval() {
+    return Math.floor(Math.random() * 6) + 15; // 15到20之间的随机数
+}
+
 document.addEventListener('keydown', (e) => {
     const preAnswerVisible = document.getElementById('pre-answer-btns').style.display !== 'none';
     const postAnswerVisible = document.getElementById('post-answer-btns').style.display !== 'none';
@@ -67,9 +72,10 @@ async function loadLibrary() {
                 ...item,
                 _reviewCount: 0, // 本地复习次数
                 _consecutiveCorrect: 0, // 本地连续正确次数
+                _learningStep: 0, // 学习步骤：0=初始，1=第一次不记得后，2=第一次记得后，3=掌握
                 _mastered: false // 本地掌握状态
             };
-            
+
             questionMap.set(item.id, questionObj);
             dynamicSequence.push(item.id); // 所有题目都加入序列
         });
@@ -104,7 +110,7 @@ function showQuestion() {
     document.getElementById('progress-tag').innerText = `${masteredItems}/${totalItems}`;
 
     if (dynamicSequence.length === 0) {
-        document.getElementById('content-q').innerText = "🎉 所有题目已掌握！";
+        document.getElementById('content-q').innerText = "🎉 All questions have been mastered!";
         document.getElementById('content-a').style.display = 'none';
         document.getElementById('pre-answer-btns').style.display = 'none';
         document.getElementById('post-answer-btns').style.display = 'none';
@@ -139,45 +145,62 @@ function showAnswer() {
 
 function handleAction(action) {
     if (!currentItem) return;
-  
+
     const itemId = currentItem.id;
-    
+
     // 从动态序列中移除当前题目
     dynamicSequence.shift();
-    
+
     // 更新本地状态
     currentItem._reviewCount++;
-    
+
     if (action === 'recognized') {
         // 用户表示掌握
         currentItem._consecutiveCorrect++;
-        
-        // v3.0.0逻辑：第一次复习就答对，或者连续答对2次
-        if (currentItem._reviewCount === 1 || currentItem._consecutiveCorrect >= 2) {
+
+        // 情况1：第一次复习就答对（首次记得）
+        if (currentItem._reviewCount === 1) {
             currentItem._mastered = true;
+            currentItem._learningStep = 3; // 掌握
             masteredItems++;
-            // 如果掌握，就从序列中完全移除
-            console.log(`✅ 题目已掌握: ${currentItem.question.substring(0, 50)}...`);
-        } else {
-            // 尚未完全掌握，但这次答对了，插入到序列末尾
-            dynamicSequence.push(itemId);
-            console.log(`🔄 题目答对但未完全掌握，放入末尾: ${currentItem.question.substring(0, 50)}...`);
+            console.log(`✅ 题目首次答对，已掌握: ${currentItem.question.substring(0, 50)}...`);
         }
-        
+        // 情况2：处于学习步骤1（第一次不记得后）
+        else if (currentItem._learningStep === 1) {
+            // 第一次不记得后的记得：间隔15-20
+            currentItem._learningStep = 2; // 进入步骤2
+            const insertIndex = getLongRandomInterval(); // 15-20
+            const actualIndex = Math.min(insertIndex, dynamicSequence.length);
+            dynamicSequence.splice(actualIndex, 0, itemId);
+            console.log(`🔄 第一次不记得后的记得，间隔${actualIndex}个位置(15-20)后复习: ${currentItem.question.substring(0, 50)}...`);
+        }
+        // 情况3：处于学习步骤2（第一次记得后）
+        else if (currentItem._learningStep === 2) {
+            // 第二次记得：掌握
+            currentItem._mastered = true;
+            currentItem._learningStep = 3; // 掌握
+            masteredItems++;
+            console.log(`✅ 第二次记得，题目已掌握: ${currentItem.question.substring(0, 50)}...`);
+        }
+        // 其他情况（理论上不会发生）
+        else {
+            console.warn(`⚠️ 未知状态：reviewCount=${currentItem._reviewCount}, learningStep=${currentItem._learningStep}`);
+        }
+
     } else if (action === 'forgotten') {
         // 用户表示未掌握
         currentItem._consecutiveCorrect = 0;
         currentItem._mastered = false;
-        
+
+        // 无论当前处于什么步骤，不记得都重置到步骤1
+        currentItem._learningStep = 1; // 进入步骤1（第一次不记得后）
+
         // 计算插入位置：当前位置后8-12个位置
         const insertIndex = getRandomInterval();
-        
-        // 确保插入位置不超过序列长度
         const actualIndex = Math.min(insertIndex, dynamicSequence.length);
-        
-        // 将题目插入到计算出的位置
         dynamicSequence.splice(actualIndex, 0, itemId);
-        console.log(`❌ 题目答错，间隔${actualIndex}个位置后复习: ${currentItem.question.substring(0, 50)}...`);
+
+        console.log(`❌ 题目答错，重置到步骤1，间隔${actualIndex}个位置(8-12)后复习: ${currentItem.question.substring(0, 50)}...`);
     }
 
     // 显示下一题
