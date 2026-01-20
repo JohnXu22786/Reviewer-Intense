@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>Select Knowledge Base - Reviewer Intense</title>
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .selector-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .header h1 {
+            margin: 0;
+            color: var(--accent);
+        }
+        .btn-back {
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .btn-back:hover {
+            background: var(--border);
+        }
+        .file-list {
+            display: grid;
+            gap: 12px;
+        }
+        .file-item {
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .file-item:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(187, 134, 252, 0.1);
+        }
+        .file-name {
+            font-size: 1.1rem;
+            font-weight: 500;
+            word-break: break-word;
+        }
+        .file-count {
+            font-size: 0.9rem;
+            color: #888;
+            margin-top: 5px;
+        }
+        .select-indicator {
+            color: var(--accent);
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .file-item:hover .select-indicator {
+            opacity: 1;
+        }
+        .no-files {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+        }
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .btn-back {
+                align-self: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="selector-container">
+        <div class="header">
+            <h1>📚 Select Knowledge Base</h1>
+            <button class="btn-back" onclick="goBack()">← Home</button>
+        </div>
+
+        <div class="file-list" id="file-list">
+            <!-- File items will be populated here -->
+        </div>
+        <div id="no-files" class="no-files" style="display: none;">
+            No knowledge base files found.
+        </div>
+    </div>
+
+    <script>
+        // Load file list from API
+        async function loadFileList() {
+            try {
+                const res = await fetch('/api/files');
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+
+                if (data.files.length === 0) {
+                    document.getElementById('no-files').style.display = 'block';
+                    return;
+                }
+
+                // Sort files descending by name
+                const sortedFiles = data.files.sort((a, b) => b.name.localeCompare(a.name));
+
+                const fileList = document.getElementById('file-list');
+                fileList.innerHTML = '';
+
+                sortedFiles.forEach(file => {
+                    const item = document.createElement('div');
+                    item.className = 'file-item';
+                    item.onclick = () => selectFile(file.name);
+                    item.innerHTML = `
+                        <div>
+                            <div class="file-name">${escapeHtml(file.name)}</div>
+                            <div class="file-count">${file.has_due_today ? 'Has items to review' : 'All items mastered'}</div>
+                        </div>
+                        <div class="select-indicator">→</div>
+                    `;
+                    fileList.appendChild(item);
+                });
+            } catch (error) {
+                console.error('Failed to load file list:', error);
+                document.getElementById('no-files').style.display = 'block';
+                document.getElementById('no-files').innerHTML = `Error loading files: ${error.message}`;
+            }
+        }
+
+        function selectFile(fileName) {
+            // Redirect to main page with file parameter
+            window.location.href = `/?file=${encodeURIComponent(fileName)}`;
+        }
+
+        function goBack() {
+            window.location.href = '/';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', loadFileList);
+    </script>
+</body>
+</html>

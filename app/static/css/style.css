@@ -260,8 +260,122 @@ body {
         padding-top: 15px;
     }
     
-    .btn-main, .btn-forgot, .btn-remember { 
+    .btn-main, .btn-forgot, .btn-remember {
         padding: 14px;
         font-size: 0.95rem;
+    }
+}
+
+/* Export menu modal styles */
+.export-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.export-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.export-modal {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 24px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+    position: relative;
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+}
+
+.export-modal-overlay.active .export-modal {
+    transform: translateY(0);
+}
+
+.export-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border);
+}
+
+.export-modal-title {
+    margin: 0;
+    font-size: 1.2em;
+    color: var(--accent);
+}
+
+.export-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    color: var(--text);
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+.export-modal-close:hover {
+    background-color: var(--border);
+}
+
+.export-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.export-option {
+    padding: 15px 20px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    cursor: pointer;
+    font-weight: 600;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.export-option:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    transform: translateY(-2px);
+}
+
+.export-option:active {
+    transform: translateY(0);
+}
+
+@media (max-width: 480px) {
+    .export-modal {
+        padding: 20px;
+        width: 95%;
+    }
+
+    .export-option {
+        padding: 12px 16px;
     }
 }
