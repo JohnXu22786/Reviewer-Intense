@@ -16,6 +16,18 @@ def serve_index():
     return send_from_directory('templates', 'index.html')
 
 
+@main_bp.route('/report')
+def serve_report():
+    """Serve the report.html page."""
+    return send_from_directory('templates', 'report.html')
+
+
+@main_bp.route('/file-selector')
+def serve_file_selector():
+    """Serve the file-selector.html page."""
+    return send_from_directory('templates', 'file-selector.html')
+
+
 @main_bp.route('/<path:filename>')
 def serve_static(filename):
     """Serve static files (JS, CSS, favicon)."""
