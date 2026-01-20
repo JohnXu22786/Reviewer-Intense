@@ -1,5 +1,5 @@
-const hostname = window.location.hostname || 'localhost';
-const API_URL = `http://${hostname}:1200/api`;
+// Use relative path for API - works with same-origin requests
+const API_URL = '/api';
 
 let dynamicSequence = []; // 动态序列，存储题目ID
 let questionMap = new Map(); // 映射：ID -> 题目对象
