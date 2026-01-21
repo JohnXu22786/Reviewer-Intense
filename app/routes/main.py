@@ -11,8 +11,14 @@ main_bp = Blueprint('main', __name__)
 
 
 @main_bp.route('/')
-def serve_index():
-    """Serve the main index.html page."""
+def serve_home():
+    """Serve the home page (knowledge base selection)."""
+    return send_from_directory('templates', 'file-selector.html')
+
+
+@main_bp.route('/review')
+def serve_review():
+    """Serve the review page."""
     return send_from_directory('templates', 'index.html')
 
 
@@ -22,10 +28,23 @@ def serve_report():
     return send_from_directory('templates', 'report.html')
 
 
+@main_bp.route('/edit')
+def serve_editor():
+    """Serve the knowledge base editor page."""
+    return send_from_directory('templates', 'editor.html')
+
+
+@main_bp.route('/new')
+def serve_new_kb():
+    """Serve the new knowledge base creation page."""
+    return send_from_directory('templates', 'new-kb.html')
+
+
 @main_bp.route('/file-selector')
 def serve_file_selector():
-    """Serve the file-selector.html page."""
-    return send_from_directory('templates', 'file-selector.html')
+    """Serve the file-selector.html page (legacy, redirect to home)."""
+    from flask import redirect
+    return redirect('/')
 
 
 @main_bp.route('/<path:filename>')
