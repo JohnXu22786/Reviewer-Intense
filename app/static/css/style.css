@@ -49,6 +49,27 @@ body {
     margin-bottom: 10px;
 }
 
+.back-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text);
+    font-size: 1.3rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background: var(--border);
+    transform: scale(1.1);
+}
+
 .select-wrapper {
     flex: 1;
     position: relative;
@@ -264,6 +285,115 @@ body {
         padding: 14px;
         font-size: 0.95rem;
     }
+}
+
+/* Edit mode styles */
+.edit-toolbar {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.edit-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text);
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.edit-btn:hover {
+    background: var(--border);
+    transform: scale(1.1);
+}
+
+.save-btn {
+    background: var(--remember);
+    color: white;
+    border-color: var(--remember);
+}
+
+.save-btn:hover {
+    background: #26a69a;
+    border-color: #26a69a;
+}
+
+.edit-pencil-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.edit-pencil-btn:hover:not(:disabled) {
+    background: var(--border);
+    transform: scale(1.1);
+}
+
+.edit-pencil-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.edit-pencil-btn.active {
+    opacity: 1;
+    cursor: pointer;
+}
+
+.card {
+    position: relative; /* For absolute positioning of edit buttons */
+}
+
+/* Edit mode text areas */
+.edit-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 15px;
+    border: 2px solid var(--accent);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text);
+    font-size: 1.2rem;
+    line-height: 1.6;
+    font-family: inherit;
+    resize: vertical;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+}
+
+.edit-textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(187, 134, 252, 0.3);
+}
+
+.edit-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--accent);
 }
 
 /* Export menu modal styles */

@@ -7,6 +7,7 @@ let currentItem = null;
 let fileName = "";
 let totalItems = 0; // 总题目数
 let masteredItems = 0; // 已掌握的题目数
+let isEditMode = false; // 是否处于编辑模式
 
 // 保存进度到localStorage
 function saveProgress() {
@@ -76,11 +77,8 @@ async function loadLibrary() {
     if (fileName) {
         saveProgress();
     }
-    fileName = document.getElementById('file-selector').value;
-    if (!fileName) return;
-    // 如果选择的是"More..."，跳转到文件选择器页面
-    if (fileName === '__more__') {
-        window.location.href = '/file-selector';
+    if (!fileName) {
+        console.error('No file name specified');
         return;
     }
     console.log(`📖 Loading library: ${fileName}`);
@@ -167,6 +165,191 @@ function shuffleArray(array) {
     return array;
 }
 
+// 更新笔图标状态
+function updatePencilButton() {
+    const pencilBtn = document.getElementById('edit-pencil-btn');
+    const postAnswerVisible = document.getElementById('post-answer-btns').style.display !== 'none';
+
+    if (postAnswerVisible && currentItem && !isEditMode) {
+        pencilBtn.style.display = 'flex';
+        pencilBtn.style.opacity = '1';
+        pencilBtn.disabled = false;
+        pencilBtn.style.cursor = 'pointer';
+    } else {
+        pencilBtn.style.display = 'flex';
+        pencilBtn.style.opacity = '0.3';
+        pencilBtn.disabled = true;
+        pencilBtn.style.cursor = 'not-allowed';
+    }
+}
+
+// 进入编辑模式
+function enterEditMode() {
+    if (!currentItem || isEditMode) return;
+
+    isEditMode = true;
+
+    // 隐藏笔图标，显示编辑工具栏
+    document.getElementById('edit-pencil-btn').style.display = 'none';
+    document.getElementById('edit-toolbar').style.display = 'flex';
+
+    // 保存原始内容
+    const originalQuestion = currentItem.question;
+    const originalAnswer = currentItem.answer;
+
+    // 创建编辑界面
+    const card = document.getElementById('card');
+    const questionElem = document.getElementById('content-q');
+    const answerElem = document.getElementById('content-a');
+
+    // 保存原始显示状态
+    const wasAnswerVisible = answerElem.style.display !== 'none';
+
+    // 创建编辑表单
+    const editForm = document.createElement('div');
+    editForm.id = 'edit-form';
+    editForm.innerHTML = `
+        <div class="edit-field">
+            <label class="edit-label">Question:</label>
+            <textarea id="edit-question" class="edit-textarea" placeholder="Enter question...">${escapeHtml(originalQuestion)}</textarea>
+        </div>
+        <div class="edit-field">
+            <label class="edit-label">Answer:</label>
+            <textarea id="edit-answer" class="edit-textarea" placeholder="Enter answer...">${escapeHtml(originalAnswer)}</textarea>
+        </div>
+    `;
+
+    // 替换卡片内容
+    questionElem.style.display = 'none';
+    answerElem.style.display = 'none';
+    card.insertBefore(editForm, questionElem);
+
+    // 隐藏复习按钮
+    document.getElementById('pre-answer-btns').style.display = 'none';
+    document.getElementById('post-answer-btns').style.display = 'none';
+
+    // 焦点到问题输入框
+    document.getElementById('edit-question').focus();
+}
+
+// 退出编辑模式
+function exitEditMode() {
+    if (!isEditMode) return;
+
+    isEditMode = false;
+
+    // 显示笔图标，隐藏编辑工具栏
+    document.getElementById('edit-pencil-btn').style.display = 'flex';
+    document.getElementById('edit-toolbar').style.display = 'none';
+
+    // 移除编辑表单
+    const editForm = document.getElementById('edit-form');
+    if (editForm) {
+        editForm.remove();
+    }
+
+    // 恢复问题答案显示
+    document.getElementById('content-q').style.display = 'block';
+    document.getElementById('content-a').style.display = 'block';
+
+    // 更新笔图标状态
+    updatePencilButton();
+}
+
+// 保存编辑
+async function saveEdit() {
+    if (!currentItem || !isEditMode) return;
+
+    const newQuestion = document.getElementById('edit-question').value.trim();
+    const newAnswer = document.getElementById('edit-answer').value.trim();
+
+    if (!newQuestion || !newAnswer) {
+        alert('Question and answer cannot be empty!');
+        return;
+    }
+
+    // 如果内容没有变化，直接退出编辑模式
+    if (newQuestion === currentItem.question && newAnswer === currentItem.answer) {
+        exitEditMode();
+        return;
+    }
+
+    try {
+        // 调用API保存到文件
+        const response = await fetch(`${API_URL}/update-item`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                file_name: fileName,
+                item_id: currentItem.id,
+                new_question: newQuestion,
+                new_answer: newAnswer
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to save changes: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+            // 更新本地数据
+            const oldId = currentItem.id;
+            const newId = result.new_id || currentItem.id;
+
+            // 更新题目对象
+            currentItem.question = newQuestion;
+            currentItem.answer = newAnswer;
+            currentItem.id = newId; // ID可能会改变
+
+            // 如果ID改变，更新questionMap
+            if (oldId !== newId) {
+                questionMap.delete(oldId);
+                questionMap.set(newId, currentItem);
+
+                // 更新dynamicSequence中的ID
+                const index = dynamicSequence.indexOf(oldId);
+                if (index !== -1) {
+                    dynamicSequence[index] = newId;
+                }
+            }
+
+            // 保存进度
+            saveProgress();
+
+            // 更新显示
+            document.getElementById('content-q').innerText = newQuestion;
+            document.getElementById('content-a').innerText = newAnswer;
+
+            // 退出编辑模式
+            exitEditMode();
+
+            // 显示答案区域和按钮（保持在查看答案界面）
+            document.getElementById('content-a').style.display = 'block';
+            document.getElementById('post-answer-btns').style.display = 'block';
+            document.getElementById('pre-answer-btns').style.display = 'none';
+
+            // 更新笔图标状态
+            updatePencilButton();
+
+            console.log('✅ Item updated successfully');
+        } else {
+            throw new Error(result.error || 'Unknown error');
+        }
+    } catch (error) {
+        console.error('❌ Failed to save edit:', error);
+        alert(`Failed to save changes: ${error.message}`);
+    }
+}
+
+// 简单的HTML转义
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 function showQuestion() {
     // 更新进度：已掌握的题目数/总题目数
     document.getElementById('progress-tag').innerText = `${masteredItems}/${totalItems}`;
@@ -200,6 +383,14 @@ function showQuestion() {
     document.getElementById('content-a').style.display = 'none';
     document.getElementById('pre-answer-btns').style.display = 'block';
     document.getElementById('post-answer-btns').style.display = 'none';
+
+    // 确保退出编辑模式（如果正在编辑）
+    if (isEditMode) {
+        exitEditMode();
+    }
+
+    // 更新笔图标状态
+    updatePencilButton();
 }
 
 function showAnswer() {
@@ -208,6 +399,9 @@ function showAnswer() {
     document.getElementById('content-a').style.display = 'block';
     document.getElementById('pre-answer-btns').style.display = 'none';
     document.getElementById('post-answer-btns').style.display = 'block';
+
+    // 更新笔图标状态（显示答案时可用）
+    updatePencilButton();
 }
 
 function handleAction(action) {
@@ -288,77 +482,49 @@ function viewReport() {
 // Initialization
 (async () => {
     try {
+        // 设置编辑按钮事件监听器
+        document.getElementById('edit-pencil-btn').addEventListener('click', () => {
+            if (!document.getElementById('edit-pencil-btn').disabled) {
+                enterEditMode();
+            }
+        });
+        document.getElementById('cancel-edit-btn').addEventListener('click', exitEditMode);
+        document.getElementById('save-edit-btn').addEventListener('click', saveEdit);
+
+        // 添加返回按钮事件
+        document.getElementById('back-btn').addEventListener('click', () => {
+            window.location.href = '/';
+        });
+
+        // 获取URL参数中的文件名
+        function getUrlParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+        const urlFile = getUrlParam('file');
+
+        if (!urlFile) {
+            document.getElementById('content-q').innerText = 'No knowledge base selected. Please select one from the home page.';
+            document.getElementById('progress-tag').innerText = `0/0`;
+            return;
+        }
+
+        // 验证文件存在
         const res = await fetch(`${API_URL}/files`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    
+
         const data = await res.json();
-        const sel = document.getElementById('file-selector');
-    
-        if (data.files.length === 0) {
-            sel.add(new Option('未找到知识库文件 (.json)', ''));
-            document.getElementById('content-q').innerText = '⚠️ 未找到知识库文件 (.json)';
+        const fileExists = data.files.find(f => f.name === urlFile);
+
+        if (!fileExists) {
+            document.getElementById('content-q').innerText = `Knowledge base "${urlFile}" not found.`;
             document.getElementById('progress-tag').innerText = `0/0`;
-        } else {
-            // 按文件名降序排序（数字开头则数字大的在前）
-            const sortedFiles = data.files.sort((a, b) => b.name.localeCompare(a.name));
-
-            // 获取URL参数中的文件
-            function getUrlParam(name) {
-                const urlParams = new URLSearchParams(window.location.search);
-                return urlParams.get(name);
-            }
-            const urlFile = getUrlParam('file');
-
-            // 确定要显示的文件列表
-            let displayFiles = sortedFiles.slice(0, 10);
-            const hasMore = sortedFiles.length > 10;
-
-            // 如果URL参数指定了文件，且该文件不在前10个中，将其添加到显示列表（替换第10个）
-            if (urlFile) {
-                const urlFileExists = sortedFiles.find(f => f.name === urlFile);
-                if (urlFileExists) {
-                    // 如果文件不在前10个中，将其插入到显示列表
-                    if (!displayFiles.find(f => f.name === urlFile)) {
-                        displayFiles = [urlFileExists, ...sortedFiles.slice(0, 9)];
-                    }
-                }
-            }
-
-            // 清空select
-            sel.innerHTML = '';
-
-            // 添加显示的文件
-            displayFiles.forEach(file => {
-                const option = new Option(file.name, file.name);
-                sel.add(option);
-            });
-
-            // 如果文件数超过10个，添加"More..."选项
-            if (hasMore) {
-                const moreOption = new Option('More...', '__more__');
-                sel.add(moreOption);
-            }
-
-            sel.onchange = loadLibrary;
-
-            // 确定要加载的文件：优先使用URL参数，否则使用第一个文件
-            let fileToLoad = null;
-            if (urlFile) {
-                const urlFileExists = sortedFiles.find(f => f.name === urlFile);
-                if (urlFileExists) {
-                    fileToLoad = urlFile;
-                    sel.value = urlFile;
-                }
-            }
-            if (!fileToLoad && sortedFiles[0].name) {
-                fileToLoad = sortedFiles[0].name;
-            }
-
-            if (fileToLoad) {
-                fileName = fileToLoad;
-                await loadLibrary();
-            }
+            return;
         }
+
+        // 加载知识库
+        fileName = urlFile;
+        await loadLibrary();
     } catch (error) {
         console.error('❌ 初始化失败:', error);
         document.getElementById('progress-tag').innerText = `0/0`;
@@ -789,7 +955,7 @@ function exportCsv(event) {
 function goBack() {
     const fileName = getReportUrlParam('file');
     if (fileName) {
-        window.location.href = `/?file=${encodeURIComponent(fileName)}`;
+        window.location.href = `/review?file=${encodeURIComponent(fileName)}`;
     } else {
         window.location.href = '/';
     }

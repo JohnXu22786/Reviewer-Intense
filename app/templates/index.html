@@ -11,14 +11,20 @@
 <body>
     <div id="app">
         <div class="header">
-            <div class="select-wrapper">
-                <select id="file-selector"></select>
-            </div>
+            <button id="back-btn" class="back-btn" title="Back to home">←</button>
             <span id="progress-tag">0/0</span>
         </div>
 
         <div class="card-container">
             <div id="card" class="card">
+                <!-- Edit toolbar (hidden by default, shown in edit mode) -->
+                <div id="edit-toolbar" class="edit-toolbar" style="display: none;">
+                    <button id="cancel-edit-btn" class="edit-btn" title="Cancel edit">×</button>
+                    <button id="save-edit-btn" class="edit-btn save-btn" title="Save changes">✓</button>
+                </div>
+                <!-- Edit pencil icon (shown when answer is visible) -->
+                <button id="edit-pencil-btn" class="edit-pencil-btn" title="Edit this question" style="display: none; opacity: 0.3; cursor: not-allowed;">✏️</button>
+
                 <div id="content-q" class="text-display">Please select a knowledge base to start</div>
                 <div id="content-a" class="text-display secondary" style="display:none"></div>
             </div>
