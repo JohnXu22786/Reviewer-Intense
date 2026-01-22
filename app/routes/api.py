@@ -216,7 +216,7 @@ def save_all_items():
         # Ensure directory exists
         os.makedirs(KNOWLEDGE_DIR, exist_ok=True)
 
-        # Generate IDs for items without IDs
+        # Process items, preserving existing IDs if they exist
         processed_items = []
         for item in items:
             question = item.get('question', '').strip()
@@ -225,8 +225,12 @@ def save_all_items():
             if not question or not answer:
                 continue  # Skip empty items
 
-            # Generate ID based on content
-            item_id = generate_content_hash(question, answer)
+            # Use existing ID if present, otherwise generate based on content
+            existing_id = item.get('id')
+            if existing_id:
+                item_id = existing_id
+            else:
+                item_id = generate_content_hash(question, answer)
             processed_items.append({
                 'id': item_id,
                 'question': question,

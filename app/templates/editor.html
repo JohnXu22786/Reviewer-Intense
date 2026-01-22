@@ -570,10 +570,11 @@
             if (!currentFileName) return;
 
             try {
-                // Prepare items without IDs (they will be regenerated on server)
+                // Prepare items with IDs to preserve them
                 const itemsToSave = items.map(item => ({
                     question: item.question,
-                    answer: item.answer
+                    answer: item.answer,
+                    id: item.id // Preserve existing ID
                 }));
 
                 const res = await fetch('/api/save-all', {
