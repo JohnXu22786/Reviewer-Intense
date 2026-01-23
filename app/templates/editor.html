@@ -434,15 +434,19 @@
                 return;
             }
 
-            const newItem = { question, answer };
-
             try {
                 if (currentEditIndex === -1) {
                     // Add new item
+                    const newItem = { question, answer };
                     items.push(newItem);
                 } else {
-                    // Update existing item
-                    items[currentEditIndex] = newItem;
+                    // Update existing item - preserve the original ID
+                    const originalItem = items[currentEditIndex];
+                    items[currentEditIndex] = {
+                        question,
+                        answer,
+                        id: originalItem.id // Keep the original ID
+                    };
                 }
 
                 // Update display
@@ -570,11 +574,18 @@
             if (!currentFileName) return;
 
             try {
-                // Prepare items without IDs (they will be regenerated on server)
-                const itemsToSave = items.map(item => ({
-                    question: item.question,
-                    answer: item.answer
-                }));
+                // Prepare items for saving, preserving existing IDs
+                const itemsToSave = items.map(item => {
+                    const itemData = {
+                        question: item.question,
+                        answer: item.answer
+                    };
+                    // Only include ID if it exists (for existing items)
+                    if (item.id !== undefined && item.id !== null) {
+                        itemData.id = item.id;
+                    }
+                    return itemData;
+                });
 
                 const res = await fetch('/api/save-all', {
                     method: 'POST',
