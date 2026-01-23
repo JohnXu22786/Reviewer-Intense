@@ -19,6 +19,24 @@ def generate_content_hash(question, answer):
     return hashlib.md5(content.encode('utf-8')).hexdigest()[:8]
 
 
+def generate_random_id():
+    """Generate a unique random ID with timestamp prefix to prevent collisions."""
+    import time
+    import secrets
+    import string
+
+    # Millisecond timestamp ensures uniqueness across different moments
+    timestamp = str(int(time.time() * 1000))
+
+    # Cryptographically secure random suffix (6 alphanumeric characters)
+    # 62^6 ≈ 56 billion possible combinations
+    alphabet = string.ascii_letters + string.digits  # A-Za-z0-9
+    random_chars = ''.join(secrets.choice(alphabet) for _ in range(6))
+
+    # Format: timestamp_random (e.g., "1740281234_aB3dE7")
+    return f"{timestamp}_{random_chars}"
+
+
 @api_bp.route('/files', methods=['GET'])
 def list_files():
     """List all available JSON knowledge base files"""
@@ -67,6 +85,8 @@ def load_data():
 
         # 处理数据，确保每个题目都有ID
         items = []
+        data_modified = False
+
         for item in raw_data:
             question = item.get('question', '').strip()
             answer = item.get('answer', '').strip()
@@ -76,16 +96,25 @@ def load_data():
 
             # 生成或使用已有的ID
             existing_id = item.get('id')
-            if existing_id:
-                stable_id = existing_id
+            if not existing_id:
+                # 为没有ID的项目生成随机ID
+                stable_id = generate_random_id()
+                item['id'] = stable_id  # 更新原始数据
+                data_modified = True
             else:
-                stable_id = generate_content_hash(question, answer)
+                stable_id = existing_id
 
             items.append({
                 'id': stable_id,
                 'question': question,
                 'answer': answer
             })
+
+        # 如果有项目被修改（添加了ID），保存回文件
+        if data_modified:
+            with open(json_path, 'w', encoding='utf-8') as f:
+                json.dump(raw_data, f, ensure_ascii=False, indent=2)
+            print(f"   💾 Added IDs to {len(items)} items and saved to {file_name}")
 
         print(f"   📊 Loaded {len(items)} items from {file_name}.")
         return jsonify({"items": items, "total": len(items)})
@@ -216,7 +245,7 @@ def save_all_items():
         # Ensure directory exists
         os.makedirs(KNOWLEDGE_DIR, exist_ok=True)
 
-        # Generate IDs for items without IDs
+        # Process items, preserving existing IDs if they exist
         processed_items = []
         for item in items:
             question = item.get('question', '').strip()
@@ -225,8 +254,12 @@ def save_all_items():
             if not question or not answer:
                 continue  # Skip empty items
 
-            # Generate ID based on content
-            item_id = generate_content_hash(question, answer)
+            # Use existing ID if present, otherwise generate random ID
+            existing_id = item.get('id')
+            if existing_id:
+                item_id = existing_id
+            else:
+                item_id = generate_random_id()
             processed_items.append({
                 'id': item_id,
                 'question': question,
