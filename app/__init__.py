@@ -21,6 +21,10 @@ def create_app(config_class=Config):
     # Create Flask app instance
     app = Flask(__name__)
 
+    # Configure session
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
+    app.config['SESSION_TYPE'] = 'filesystem'
+
     # Load configuration from config class
     config = config_class()
 
@@ -33,8 +37,9 @@ def create_app(config_class=Config):
     CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     # Register blueprints
-    from app.routes import api_bp, main_bp
+    from app.routes import api_bp, main_bp, review_bp
     app.register_blueprint(api_bp)
     app.register_blueprint(main_bp)
+    app.register_blueprint(review_bp)
 
     return app

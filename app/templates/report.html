@@ -190,8 +190,8 @@
 
     <script>
         // Initialize report on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            const data = loadReportData();
+        document.addEventListener('DOMContentLoaded', async () => {
+            const data = await loadReportData();
             if (data) {
                 displayReport(data);
             }
