@@ -132,7 +132,9 @@ class SpacedRepetitionEngine:
             )
 
             self.item_states[item_id] = question_obj
-            self.dynamic_sequence.append(item_id)  # All items added to sequence initially
+            # Only add non-mastered items to the dynamic sequence
+            if not question_obj.mastered:
+                self.dynamic_sequence.append(item_id)
 
         self.total_items_count = len(items)
 
@@ -279,18 +281,17 @@ class SpacedRepetitionEngine:
 
         state = self.item_states[item_id]
 
+        # Save old mastered state before updating fields
+        old_mastered = state.mastered if 'mastered' in new_state else None
+
         # Update fields from new_state
         for key, value in new_state.items():
             if hasattr(state, key):
-                if key == 'learning_step':
-                    setattr(state, key, value)
-                else:
-                    setattr(state, key, value)
+                setattr(state, key, value)
 
         # Update mastered items count if mastered status changed
-        if 'mastered' in new_state:
-            old_mastered = state.mastered
-            new_mastered = new_state['mastered']
+        if old_mastered is not None:
+            new_mastered = state.mastered  # Get the updated value
 
             if new_mastered and not old_mastered:
                 # Item became mastered - increase counter
@@ -386,9 +387,6 @@ class SpacedRepetitionEngine:
 
         return True
 
-    def get_next_item(self) -> Optional[str]:
-        """Get the next item ID to review."""
-        return self.dynamic_sequence[0] if self.dynamic_sequence else None
 
     def get_progress(self) -> dict:
         """Get progress statistics."""
