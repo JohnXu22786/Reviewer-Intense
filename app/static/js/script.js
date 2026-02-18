@@ -30,12 +30,12 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Load knowledge base and review state from server
-async function loadLibrary() {
+async function loadLibrary(newSession = false) {
     if (!fileName) {
         console.error('No file name specified');
         return;
     }
-    console.log(`📖 Loading library: ${fileName}`);
+    console.log(`📖 Loading library: ${fileName} (newSession: ${newSession})`);
 
     try {
         // First, load the knowledge base data
@@ -60,7 +60,7 @@ async function loadLibrary() {
         totalItems = data.items.length;
 
         // Now get review state from server
-        await getReviewState();
+        await getReviewState(newSession);
 
     } catch (error) {
         console.error('❌ Load failed:', error);
@@ -70,11 +70,11 @@ async function loadLibrary() {
 }
 
 // Get current review state from server
-async function getReviewState() {
+async function getReviewState(isNewSession = false) {
     if (!fileName) return;
 
     try {
-        const res = await fetch(`${API_URL}/review/state?file=${encodeURIComponent(fileName)}`);
+        const res = await fetch(`${API_URL}/review/state?file=${encodeURIComponent(fileName)}&new_session=${isNewSession}`);
 
         if (!res.ok) {
             throw new Error(`HTTP Error ${res.status}`);
@@ -425,6 +425,12 @@ function viewReport() {
 
         // Add back button event
         document.getElementById('back-btn').addEventListener('click', () => {
+            // Reset session on server (non-blocking, ignore errors)
+            fetch(`${API_URL}/review/reset`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ file: fileName })
+            }).catch(() => {});
             window.location.href = '/';
         });
 
@@ -434,6 +440,7 @@ function viewReport() {
             return urlParams.get(name);
         }
         const urlFile = getUrlParam('file');
+        const newSession = getUrlParam('new_session') === 'true';
 
         if (!urlFile) {
             document.getElementById('content-q').innerText = 'No knowledge base selected. Please select one from the home page.';
@@ -456,7 +463,7 @@ function viewReport() {
 
         // Load knowledge base
         fileName = urlFile;
-        await loadLibrary();
+        await loadLibrary(newSession);
     } catch (error) {
         console.error('❌ Initialization failed:', error);
         document.getElementById('progress-tag').innerText = `0/0`;

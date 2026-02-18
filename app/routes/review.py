@@ -16,14 +16,15 @@ review_bp = Blueprint('review', __name__, url_prefix='/api')
 # No state manager needed for one-time program
 
 
-def get_review_engine(knowledge_file: str) -> SpacedRepetitionEngine:
+def get_review_engine(knowledge_file: str, force_new: bool = False) -> SpacedRepetitionEngine:
     """
-    Create new review engine for knowledge file (one-time program).
+    Get review engine for knowledge file with session persistence.
 
-    Always creates a fresh engine instance as this is a one-time program
-    with no state persistence. Items are cached in session to avoid repeated file reads.
+    Retrieves engine state from Flask session if available and force_new is False,
+    otherwise creates a new engine. Items are cached in session to avoid repeated file reads.
     """
     items_key = f'review_items_{knowledge_file}'
+    engine_key = f'review_engine_{knowledge_file}'
 
     # Load knowledge base items (cache in session)
     if items_key not in session:
@@ -63,9 +64,19 @@ def get_review_engine(knowledge_file: str) -> SpacedRepetitionEngine:
     else:
         items = session[items_key]
 
-    # Create fresh engine instance (no saved state for one-time program)
-    engine = SpacedRepetitionEngine()
-    engine.initialize_from_items(items)
+    # Check if we need to create new engine or restore from session
+    if force_new or engine_key not in session:
+        # Create fresh engine instance
+        engine = SpacedRepetitionEngine()
+        engine.initialize_from_items(items)
+        # Save initial state to session
+        session[engine_key] = engine.to_serializable()
+    else:
+        # Restore engine from session
+        engine_data = session[engine_key]
+        engine = SpacedRepetitionEngine.from_serializable(engine_data)
+        # Merge with current file data to handle any changes
+        engine.merge_with_file_data(items)
 
     return engine
 
@@ -78,7 +89,11 @@ def get_review_state():
         if not knowledge_file:
             return jsonify({"error": "File parameter required"}), 400
 
-        engine = get_review_engine(knowledge_file)
+        # Get new_session parameter (default false)
+        new_session_param = request.args.get('new_session', 'false').lower()
+        force_new = new_session_param in ('true', '1', 'yes')
+
+        engine = get_review_engine(knowledge_file, force_new=force_new)
 
         # Get next item
         next_item_id = engine.get_next_item()
@@ -139,7 +154,9 @@ def handle_review_action():
         # Handle the action
         result = engine.handle_review_action(item_id, action)
 
-        # No state saving for one-time program
+        # Save updated engine state to session
+        engine_key = f'review_engine_{knowledge_file}'
+        session[engine_key] = engine.to_serializable()
 
         # Get next item details
         next_item = None
@@ -204,9 +221,12 @@ def reset_review_state():
 
         # Clear session cache for this knowledge file
         items_key = f'review_items_{knowledge_file}'
+        engine_key = f'review_engine_{knowledge_file}'
 
         if items_key in session:
             del session[items_key]
+        if engine_key in session:
+            del session[engine_key]
 
         return jsonify({
             "success": True,
